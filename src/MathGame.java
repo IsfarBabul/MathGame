@@ -4,18 +4,25 @@ public class MathGame {
 
     private Player player1;
     private Player player2;
+    private Player player3;
+    private Player player4;
     private Player currentPlayer;
     private Player winner;
+
+    private Player streakWinner;
     private boolean gameOver;
     private Scanner scanner;
 
     // create MathGame object
-    public MathGame(Player player1, Player player2, Scanner scanner) {
+    public MathGame(Player player1, Player player2, Player player3, Player player4, Scanner scanner) {
         this.player1 = player1;
         this.player2 = player2;
+        this.player3 = player3;
+        this.player4 = player4;
         this.scanner = scanner;
         currentPlayer = null; // will get assigned at start of game
         winner = null; // will get assigned when a Player wins
+        streakWinner = null; // when someone gets their first win they are the streak winner; can be lost upon a loss
         gameOver = false;
     }
 
@@ -41,6 +48,7 @@ public class MathGame {
                 System.out.println("INCORRECT!");
                 gameOver = true;
                 determineWinner();
+                determineWinStreak();
             }
         }
     }
@@ -51,6 +59,8 @@ public class MathGame {
         System.out.println("Current Scores:");
         System.out.println(player1.getName() + ": " + player1.getScore());
         System.out.println(player2.getName() + ": " + player2.getScore());
+        System.out.println(player3.getName() + ": " + player3.getScore());
+        System.out.println(player4.getName() + ": " + player4.getScore());
         System.out.println("--------------------------------------");
     }
 
@@ -58,6 +68,8 @@ public class MathGame {
     public void resetGame() {
         player1.reset(); // this method resets the player
         player2.reset();
+        player3.reset();
+        player4.reset();
         gameOver = false;
         currentPlayer = null;
         winner = null;
@@ -67,11 +79,15 @@ public class MathGame {
 
     // randomly chooses one of the Player objects to be the currentPlayer
     private void chooseStartingPlayer() {
-        int randNum = (int) (Math.random() * 2) + 1;
+        int randNum = (int) (Math.random() * 4) + 1;
         if (randNum == 1) {
             currentPlayer = player1;
-        } else {
+        } else if (randNum == 2) {
             currentPlayer = player2;
+        } else if (randNum == 3) {
+            currentPlayer = player3;
+        } else {
+            currentPlayer = player4;
         }
     }
 
@@ -93,7 +109,12 @@ public class MathGame {
         } else if (operation == 3) {
             num2 = (int) (Math.random() * 10) + 1;
             System.out.print(num1 + " * " + num2 + " = ");
-            correctAnswer = num1 * num2;
+            try {
+                correctAnswer = num1 * num2;
+            }
+            catch (StackOverflowError e) {
+                correctAnswer = 0;
+            }
         } else {  // option == 4
             num2 = (int) (Math.random() * 10) + 1;
             System.out.print(num1 + " / " + num2 + " = ");
@@ -103,17 +124,17 @@ public class MathGame {
         int playerAnswer = scanner.nextInt(); // get player's answer using Scanner
         scanner.nextLine(); // clear text buffer after numeric scanner input
 
-        if (playerAnswer == correctAnswer) {
-            return true;
-        } else {
-            return false;
-        }
+        return playerAnswer == correctAnswer;
     }
 
     // swaps the currentPlayer to the other player
     private void swapPlayers() {
         if (currentPlayer == player1) {
             currentPlayer = player2;
+        } else if (currentPlayer == player2) {
+            currentPlayer = player3;
+        } else if (currentPlayer == player3) {
+            currentPlayer = player4;
         } else {
             currentPlayer = player1;
         }
@@ -126,5 +147,17 @@ public class MathGame {
         } else {
             winner = player1;
         }
+    }
+
+    public Player getWinStreaker() {
+        return streakWinner;
+    }
+
+    private void determineWinStreak() {
+        if (streakWinner != null && streakWinner != winner) {
+            streakWinner.resetWinStreak();
+        }
+        streakWinner = winner;
+        winner.incrementWinStreak();
     }
 }
